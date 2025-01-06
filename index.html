@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Warehouse Management Demo</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        :root {
+            --primary: #64B5F6;
+            --primary-dark: #1E88E5;
+            --background: #121212;
+            --surface: #1E1E1E;
+            --surface-2: #2D2D2D;
+            --surface-3: #333333;
+            --text-primary: rgba(255, 255, 255, 0.87);
+            --text-secondary: rgba(255, 255, 255, 0.6);
+            --border: rgba(255, 255, 255, 0.12);
+            --success: #4CAF50;
+            --error: #F44336;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        #app {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .header {
+            padding: 2.5rem 0;
+            text-align: center;
+            position: relative;
+        }
+
+            .header h1 {
+                font-size: 2.75rem;
+                font-weight: 700;
+                background: linear-gradient(135deg, var(--primary) 0%, #90CAF9 100%);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                margin-bottom: 0.5rem;
+                letter-spacing: -0.5px;
+            }
+
+            .header::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 200px;
+                height: 4px;
+                background: linear-gradient(90deg, transparent, var(--primary), transparent);
+                border-radius: 2px;
+            }
+
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            justify-content: center;
+        }
+
+            .nav button {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                color: var(--text-primary);
+                padding: 0.75rem 1.5rem;
+                border-radius: 8px;
+                font-weight: 500;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                box-shadow: var(--shadow-sm);
+                min-width: 150px;
+                text-align: center;
+                outline: none;
+            }
+
+                .nav button:focus {
+                    box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.5);
+                }
+
+                .nav button.active {
+                    background: var(--primary);
+                    color: #000;
+                    border-color: var(--primary);
+                    transform: translateY(-2px);
+                    box-shadow: var(--shadow-md);
+                }
+
+                .nav button:hover:not(.active) {
+                    background: var(--surface-2);
+                    border-color: var(--primary);
+                }
+
+        .card {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+
+            .card h2 {
+                color: var(--text-primary);
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+                font-weight: 600;
+            }
+
+        form {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        label {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+
+        input, select {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+
+            input:focus, select:focus {
+                outline: none;
+                border-color: var(--primary);
+                background: var(--surface-3);
+            }
+
+        button {
+            background: var(--primary);
+            color: #000;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            align-self: start;
+        }
+
+            button:hover {
+                background: var(--primary-dark);
+                transform: translateY(-1px);
+                box-shadow: var(--shadow-md);
+            }
+
+            button:focus {
+                box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.5);
+            }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: var(--surface-2);
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-align: left;
+            padding: 1rem;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 1rem;
+            border-top: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        tr:hover td {
+            background: var(--surface-2);
+        }
+
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            animation: slideIn 0.3s ease;
+            z-index: 1000;
+        }
+
+            .notification.success {
+                background: var(--success);
+            }
+
+            .notification.error {
+                background: var(--error);
+            }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: flex-end;
+        }
+
+        .filter-button-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .error-message {
+            color: var(--error);
+            font-size: 0.875rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .notification {
+                left: 1rem;
+                right: 1rem;
+                text-align: center;
+            }
+
+            .nav {
+                justify-content: center;
+            }
+
+            button {
+                width: 100%;
+                text-align: center;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .filter-button-group {
+                width: 100%;
+            }
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+            .section.active {
+                display: block;
+            }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <div id="app">
+        <!-- Header with Title -->
+        <header class="header">
+            <h1>Warehouse Management Demo</h1>
+        </header>
+
+        <!-- Notifications -->
+        <div v-if="notification.message"
+             :class="['notification', notification.type]"
+             role="alert"
+             aria-live="assertive">
+            {{ notification.message }}
+        </div>
+
+        <!-- Main Content -->
+        <main>
+            <!-- Navigation -->
+            <nav class="nav" aria-label="Main Navigation">
+                <button :class="{ active: currentSection === 'products' }"
+                        @click="currentSection = 'products'"
+                        aria-current="page"
+                        :aria-pressed="currentSection === 'products'">
+                    Products
+                </button>
+                <button :class="{ active: currentSection === 'warehouses' }"
+                        @click="currentSection = 'warehouses'"
+                        :aria-pressed="currentSection === 'warehouses'">
+                    Warehouses
+                </button>
+                <button :class="{ active: currentSection === 'transfer' }"
+                        @click="currentSection = 'transfer'"
+                        :aria-pressed="currentSection === 'transfer'">
+                    Transfer Orders
+                </button>
+                <button :class="{ active: currentSection === 'inventory' }"
+                        @click="currentSection = 'inventory'"
+                        :aria-pressed="currentSection === 'inventory'">
+                    Inventory
+                </button>
+            </nav>
+
+            <!-- Products Section -->
+            <section class="section" :class="{ active: currentSection === 'products' }" aria-labelledby="products-heading">
+                <div class="card">
+                    <h2 id="products-heading">Products</h2>
+
+                    <!-- Create Product Form -->
+                    <form @submit.prevent="createProduct" novalidate>
+                        <div class="form-group">
+                            <label for="product-code">Code</label>
+                            <input type="text" id="product-code" v-model="newProduct.code" required
+                                   placeholder="e.g., P001" aria-required="true"
+                                   :aria-invalid="errors.productCode ? 'true' : 'false'"
+                                   @input="clearError('productCode')">
+                            <span v-if="errors.productCode" class="error-message" role="alert">{{ errors.productCode }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="product-description">Description</label>
+                            <input type="text" id="product-description" v-model="newProduct.description" required
+                                   placeholder="e.g., Widget A" aria-required="true"
+                                   :aria-invalid="errors.productDescription ? 'true' : 'false'"
+                                   @input="clearError('productDescription')">
+                            <span v-if="errors.productDescription" class="error-message" role="alert">{{ errors.productDescription }}</span>
+                        </div>
+                        <button type="submit">Add Product</button>
+                    </form>
+                </div>
+
+                <div class="card table-container">
+                    <!-- Products Table -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="product in products" :key="product.productId">
+                                <td>{{ product.code }}</td>
+                                <td>{{ product.description }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Warehouses Section -->
+            <section class="section" :class="{ active: currentSection === 'warehouses' }" aria-labelledby="warehouses-heading">
+                <div class="card">
+                    <h2 id="warehouses-heading">Warehouses</h2>
+
+                    <!-- Create Warehouse Form -->
+                    <form @submit.prevent="createWarehouse" novalidate>
+                        <div class="form-group">
+                            <label for="warehouse-code">Code</label>
+                            <input type="text" id="warehouse-code" v-model="newWarehouse.code" required
+                                   placeholder="e.g., W001" aria-required="true"
+                                   :aria-invalid="errors.warehouseCode ? 'true' : 'false'"
+                                   @input="clearError('warehouseCode')">
+                            <span v-if="errors.warehouseCode" class="error-message" role="alert">{{ errors.warehouseCode }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="warehouse-name">Name</label>
+                            <input type="text" id="warehouse-name" v-model="newWarehouse.name" required
+                                   placeholder="e.g., Main Warehouse" aria-required="true"
+                                   :aria-invalid="errors.warehouseName ? 'true' : 'false'"
+                                   @input="clearError('warehouseName')">
+                            <span v-if="errors.warehouseName" class="error-message" role="alert">{{ errors.warehouseName }}</span>
+                        </div>
+                        <button type="submit">Add Warehouse</button>
+                    </form>
+                </div>
+
+                <div class="card table-container">
+                    <!-- Warehouses Table -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="warehouse in warehouses" :key="warehouse.warehouseId">
+                                <td>{{ warehouse.code }}</td>
+                                <td>{{ warehouse.name }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Transfer Orders Section -->
+            <section class="section" :class="{ active: currentSection === 'transfer' }" aria-labelledby="transfer-heading">
+                <div class="card">
+                    <h2 id="transfer-heading">Transfer Orders</h2>
+
+                    <!-- Create Transfer Order Form -->
+                    <form @submit.prevent="createTransferOrder" novalidate>
+                        <div class="form-group">
+                            <label for="source-warehouse">Source Warehouse</label>
+                            <select id="source-warehouse" v-model="newTransfer.sourceWarehouseId" required
+                                    aria-required="true"
+                                    :aria-invalid="errors.sourceWarehouseId ? 'true' : 'false'"
+                                    @change="clearError('sourceWarehouseId')">
+                                <option disabled value="">Select Source Warehouse</option>
+                                <option v-for="warehouse in warehouses" :value="warehouse.warehouseId">
+                                    {{ warehouse.name }} ({{ warehouse.code }})
+                                </option>
+                            </select>
+                            <span v-if="errors.sourceWarehouseId" class="error-message" role="alert">{{ errors.sourceWarehouseId }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="destination-warehouse">Destination Warehouse</label>
+                            <select id="destination-warehouse" v-model="newTransfer.destinationWarehouseId" required
+                                    aria-required="true"
+                                    :aria-invalid="errors.destinationWarehouseId ? 'true' : 'false'"
+                                    @change="clearError('destinationWarehouseId')">
+                                <option disabled value="">Select Destination Warehouse</option>
+                                <option v-for="warehouse in warehouses" :value="warehouse.warehouseId">
+                                    {{ warehouse.name }} ({{ warehouse.code }})
+                                </option>
+                            </select>
+                            <span v-if="errors.destinationWarehouseId" class="error-message" role="alert">{{ errors.destinationWarehouseId }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="transfer-product">Product</label>
+                            <select id="transfer-product" v-model="newTransfer.productId" required
+                                    aria-required="true"
+                                    :aria-invalid="errors.productId ? 'true' : 'false'"
+                                    @change="clearError('productId')">
+                                <option disabled value="">Select Product</option>
+                                <option v-for="product in products" :value="product.productId">
+                                    {{ product.description }} ({{ product.code }})
+                                </option>
+                            </select>
+                            <span v-if="errors.productId" class="error-message" role="alert">{{ errors.productId }}</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="transfer-quantity">Quantity</label>
+                            <input type="number" id="transfer-quantity" v-model.number="newTransfer.quantity" min="1" required
+                                   aria-required="true"
+                                   :aria-invalid="errors.quantity ? 'true' : 'false'"
+                                   @input="clearError('quantity')">
+                            <span v-if="errors.quantity" class="error-message" role="alert">{{ errors.quantity }}</span>
+                        </div>
+                        <button type="submit">Create Transfer Order</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Inventory Section -->
+            <section class="section" :class="{ active: currentSection === 'inventory' }" aria-labelledby="inventory-heading">
+                <div class="card">
+                    <h2 id="inventory-heading">Inventory</h2>
+
+                    <!-- Inventory Filters -->
+                    <form @submit.prevent="fetchInventory" novalidate>
+                        <div class="filters">
+                            <div class="form-group">
+                                <label for="filter-product">Product Code</label>
+                                <input type="text" id="filter-product" v-model="filters.productCode"
+                                       placeholder="e.g., P001" aria-label="Filter by Product Code">
+                            </div>
+                            <div class="form-group">
+                                <label for="filter-warehouse">Warehouse Code</label>
+                                <input type="text" id="filter-warehouse" v-model="filters.warehouseCode"
+                                       placeholder="e.g., W001" aria-label="Filter by Warehouse Code">
+                            </div>
+                            <div class="form-group filter-button-group">
+                                <button type="submit">Filter</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="card table-container">
+                    <!-- Inventory Table -->
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Warehouse Code</th>
+                                <th>Product Code</th>
+                                <th>Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="item in inventory" :key="item.warehouseCode + '-' + item.productCode">
+                                <td>{{ item.warehouseCode }}</td>
+                                <td>{{ item.productCode }}</td>
+                                <td>{{ item.quantity }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Vue.js Application Script -->
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    currentSection: 'products',
+                    products: [],
+                    warehouses: [],
+                    inventory: [],
+                    newProduct: {
+                        code: '',
+                        description: ''
+                    },
+                    newWarehouse: {
+                        code: '',
+                        name: ''
+                    },
+                    newTransfer: {
+                        sourceWarehouseId: '',
+                        destinationWarehouseId: '',
+                        productId: '',
+                        quantity: 1
+                    },
+                    filters: {
+                        productCode: '',
+                        warehouseCode: ''
+                    },
+                    notification: {
+                        message: '',
+                        type: ''
+                    },
+                    errors: {
+                        productCode: '',
+                        productDescription: '',
+                        warehouseCode: '',
+                        warehouseName: '',
+                        sourceWarehouseId: '',
+                        destinationWarehouseId: '',
+                        productId: '',
+                        quantity: ''
+                    }
+                };
+            },
+            methods: {
+                // Fetch all products
+                async fetchProducts() {
+                    try {
+                        const response = await fetch('https://localhost:7031/products');
+                        if (!response.ok) throw new Error('Failed to fetch products.');
+                        this.products = await response.json();
+                    } catch (error) {
+                        this.showNotification(error.message, 'error');
+                    }
+                },
+                // Create a new product
+                async createProduct() {
+                    if (!this.validateProductForm()) return;
+                    try {
+                        const response = await fetch('https://localhost:7031/products', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.newProduct)
+                        });
+                        if (response.status === 201) {
+                            const createdProduct = await response.json();
+                            this.products.push(createdProduct);
+                            this.newProduct.code = '';
+                            this.newProduct.description = '';
+                            this.showNotification('Product added successfully!', 'success');
+                        } else {
+                            const error = await response.text();
+                            this.showNotification(error, 'error');
+                        }
+                    } catch (error) {
+                        this.showNotification(error.message, 'error');
+                    }
+                },
+                // Fetch all warehouses
+                async fetchWarehouses() {
+                    try {
+                        const response = await fetch('https://localhost:7031/warehouses');
+                        if (!response.ok) throw new Error('Failed to fetch warehouses.');
+                        this.warehouses = await response.json();
+                    } catch (error) {
+                        this.showNotification(error.message, 'error');
+                    }
+                },
+                // Create a new warehouse
+                async createWarehouse() {
+                    if (!this.validateWarehouseForm()) return;
+                    try {
+                        const response = await fetch('https://localhost:7031/warehouses', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.newWarehouse)
+                        });
+                        if (response.status === 201) {
+                            const createdWarehouse = await response.json();
+                            this.warehouses.push(createdWarehouse);
+                            this.newWarehouse.code = '';
+                            this.newWarehouse.name = '';
+                            this.showNotification('Warehouse added successfully!', 'success');
+                        } else {
+                            const error = await response.text();
+                            this.showNotification(error, 'error');
+                        }
+                    } catch (error) {
+                        this.showNotification(error.message, 'error');
+                    }
+                },
+                // Create a new transfer order
+                async createTransferOrder() {
+                    if (!this.validateTransferForm()) return;
+                    try {
+                        const response = await fetch('https://localhost:7031/transfer', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(this.newTransfer)
+                        });
+                        if (response.status === 201) {
+                            const createdOrder = await response.json();
+                            this.newTransfer.sourceWarehouseId = '';
+                            this.newTransfer.destinationWarehouseId = '';
+                            this.newTransfer.productId = '';
+                            this.newTransfer.quantity = 1;
+                            this.showNotification('Transfer order created successfully!', 'success');
+                            this.fetchInventory();
+                        } else {
+                            const error = await response.text();
+                            this.showNotification(error, 'error');
+                        }
+                    } catch (error) {
+                        this.showNotification(error.message, 'error');
+                    }
+                },
+                // Fetch inventory with optional filters
+                async fetchInventory() {
+                    try {
+                        let url = 'https://localhost:7031/inventory?';
+                        if (this.filters.productCode) {
+                            url += `productCode=${encodeURIComponent(this.filters.productCode)}&`;
+                        }
+                        if (this.filters.warehouseCode) {
+                            url += `warehouseCode=${encodeURIComponent(this.filters.warehouseCode)}&`;
+                        }
+                        const response = await fetch(url);
+                        if (!response.ok) throw new Error('Failed to fetch inventory.');
+                        this.inventory = await response.json();
+                    } catch (error) {
+                        this.showNotification(error.message, 'error');
+                    }
+                },
+                // Show notifications
+                showNotification(message, type) {
+                    this.notification.message = message;
+                    this.notification.type = type;
+                    setTimeout(() => {
+                        this.notification.message = '';
+                        this.notification.type = '';
+                    }, 4000);
+                },
+                // Form validation methods
+                validateProductForm() {
+                    let valid = true;
+                    if (!this.newProduct.code.trim()) {
+                        this.errors.productCode = 'Product code is required.';
+                        valid = false;
+                    }
+                    if (!this.newProduct.description.trim()) {
+                        this.errors.productDescription = 'Product description is required.';
+                        valid = false;
+                    }
+                    return valid;
+                },
+                validateWarehouseForm() {
+                    let valid = true;
+                    if (!this.newWarehouse.code.trim()) {
+                        this.errors.warehouseCode = 'Warehouse code is required.';
+                        valid = false;
+                    }
+                    if (!this.newWarehouse.name.trim()) {
+                        this.errors.warehouseName = 'Warehouse name is required.';
+                        valid = false;
+                    }
+                    return valid;
+                },
+                validateTransferForm() {
+                    let valid = true;
+                    if (!this.newTransfer.sourceWarehouseId) {
+                        this.errors.sourceWarehouseId = 'Source warehouse is required.';
+                        valid = false;
+                    }
+                    if (!this.newTransfer.destinationWarehouseId) {
+                        this.errors.destinationWarehouseId = 'Destination warehouse is required.';
+                        valid = false;
+                    }
+                    if (!this.newTransfer.productId) {
+                        this.errors.productId = 'Product selection is required.';
+                        valid = false;
+                    }
+                    if (!this.newTransfer.quantity || this.newTransfer.quantity < 1) {
+                        this.errors.quantity = 'Quantity must be at least 1.';
+                        valid = false;
+                    }
+                    return valid;
+                },
+                clearError(field) {
+                    if (this.errors[field]) {
+                        this.errors[field] = '';
+                    }
+                }
+            },
+            mounted() {
+                // Fetch initial data
+                this.fetchProducts();
+                this.fetchWarehouses();
+                this.fetchInventory();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
