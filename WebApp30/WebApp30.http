@@ -1,0 +1,42 @@
+@WarehouseAPI_HostAddress = http://localhost:5146
+
+### Get all products
+GET {{WarehouseAPI_HostAddress}}/products
+Accept: application/json
+
+### Create a product
+POST {{WarehouseAPI_HostAddress}}/products
+Content-Type: application/json
+
+{
+  "code": "PROD-001",
+  "description": "Example product"
+}
+
+### Get all warehouses
+GET {{WarehouseAPI_HostAddress}}/warehouses
+Accept: application/json
+
+### Create a warehouse
+POST {{WarehouseAPI_HostAddress}}/warehouses
+Content-Type: application/json
+
+{
+  "code": "NYC-001",
+  "name": "New York Warehouse"
+}
+
+### Create transfer order
+POST {{WarehouseAPI_HostAddress}}/transfer
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "sourceWarehouseId": 1,
+  "destinationWarehouseId": 2,
+  "quantity": 10
+}
+
+### Get inventory
+GET {{WarehouseAPI_HostAddress}}/inventory?productCode=PROD-001&warehouseCode=NYC-001
+Accept: application/json
