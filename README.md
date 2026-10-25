@@ -1,6 +1,4 @@
-# SCAD Software Demo
-
-## Warehouse Management System
+# Warehouse Management System
 
 A **Warehouse Management System** built with the following specifications:
 
